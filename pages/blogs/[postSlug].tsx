@@ -1,13 +1,28 @@
-import { GetStaticPaths, GetStaticProps, NextPage } from "next";
-import path from "path";
+import {
+  GetStaticPaths,
+  GetStaticProps,
+  InferGetStaticPropsType,
+  NextPage,
+} from "next";
 import fs from "fs";
+import path from "path";
 import matter from "gray-matter";
+import { ParsedUrlQuery } from "querystring";
+import { MDXRemote, MDXRemoteSerializeResult } from "next-mdx-remote";
+import { serialize } from "next-mdx-remote/serialize";
 
-interface Props {}
+type Props = InferGetStaticPropsType<typeof getStaticProps>;
 
-const SinglePage: NextPage<Props> = () => {
-  return <div>SinglePage</div>;
+const SinglePage: NextPage<Props> = ({ post }) => {
+  const { title, content } = post;
+  return (
+    <div className="max-w-3xl mx-auto">
+      <h1>{title}</h1>
+      <MDXRemote {...content} />
+    </div>
+  );
 };
+
 export const getStaticPaths: GetStaticPaths = () => {
   // reading paths
   const dirPathToRead = path.join(process.cwd(), "posts");
@@ -25,9 +40,39 @@ export const getStaticPaths: GetStaticPaths = () => {
   };
 };
 
-export const getStaticProps: GetStaticProps = () => {
+interface IStaticProps extends ParsedUrlQuery {
+  postSlug: string;
+}
+
+type Post = {
+  post: {
+    title: string;
+    content: MDXRemoteSerializeResult;
+  };
+};
+
+export const getStaticProps: GetStaticProps<Post> = async (context) => {
+  const { params } = context;
+  const { postSlug } = params as IStaticProps;
+
+  const filePathToRead = path.join(process.cwd(), "posts/" + postSlug + ".md");
+  const fileContent = fs.readFileSync(filePathToRead, {
+    encoding: "utf-8",
+  });
+  //   const { content, data } = matter(fileContent);
+  //   const source = await serialize(content);
+  //   const source = await serialize(fileContent, { parseFrontmatter: true });
+  const source: any = await serialize(fileContent, {
+    parseFrontmatter: true,
+  });
+
   return {
-    props: {},
+    props: {
+      post: {
+        content: source,
+        title: source.frontmatter.title,
+      },
+    },
   };
 };
 
