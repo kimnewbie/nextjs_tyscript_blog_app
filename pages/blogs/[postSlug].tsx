@@ -34,8 +34,7 @@ const SinglePage: NextPage<Props> = ({ post }) => {
   );
 };
 
-export const getStaticPaths: GetStaticPaths = () => {
-  try {
+export const getStaticPaths: GetStaticPaths = () => { 
     // reading paths
     const dirPathToRead = path.join(process.cwd(), "posts");
     const dirs = fs.readdirSync(dirPathToRead);
@@ -54,12 +53,7 @@ export const getStaticPaths: GetStaticPaths = () => {
     return {
       paths,
       fallback: false, // we weill come to this later and understand this with example.
-    };
-  } catch (error) {
-    return {
-      NotFound: true,
-    };
-  }
+    };  
 };
 
 interface IStaticProps extends ParsedUrlQuery {
@@ -74,28 +68,32 @@ type Post = {
 };
 
 export const getStaticProps: GetStaticProps<Post> = async (context) => {
-  const { params } = context;
-  const { postSlug } = params as IStaticProps;
-
-  const filePathToRead = path.join(process.cwd(), "posts/" + postSlug + ".md");
-  const fileContent = fs.readFileSync(filePathToRead, {
-    encoding: "utf-8",
-  });
-  //   const { content, data } = matter(fileContent);
-  //   const source = await serialize(content);
-  //   const source = await serialize(fileContent, { parseFrontmatter: true });
-  const source: any = await serialize(fileContent, {
-    parseFrontmatter: true,
-  });
-
-  return {
-    props: {
-      post: {
-        content: source,
-        title: source.frontmatter.title,
+  try {
+    const { params } = context;
+    const { postSlug } = params as IStaticProps;
+    const filePathToRead = path.join(process.cwd(), "posts/" + postSlug + ".md");
+    const fileContent = fs.readFileSync(filePathToRead, {
+      encoding: "utf-8",
+    });
+    //   const { content, data } = matter(fileContent);
+    //   const source = await serialize(content);
+    //   const source = await serialize(fileContent, { parseFrontmatter: true });
+    const source: any = await serialize(fileContent, {
+      parseFrontmatter: true,
+    });
+    return {
+      props: {
+        post: {
+          content: source,
+          title: source.frontmatter.title,
+        },
       },
-    },
-  };
+    };
+  } catch (error) {
+    return {
+      notFound: true,
+    }
+} 
 };
 
 export default SinglePage;
