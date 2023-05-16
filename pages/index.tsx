@@ -6,7 +6,7 @@ import Link from "next/link";
 const Home: NextPage = () => {
   return (
     <>
-      <h1 className="text-3xl font-bold underline">Welcome My Dev Blog</h1>
+      <h1 className="text-3xl font-bold underline">Welcome to My Dev Blog</h1>
       <Link href='/blogs'>
         <p>Go to Blog</p>
       </Link>
